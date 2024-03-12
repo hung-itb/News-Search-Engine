@@ -1,0 +1,25 @@
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - "80:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html
+  solr:
+    image: solr:9.2.1
+    volumes:
+      - ./data/solr:/var/solr
+    ports:
+      - "8983:8983"
+  backend:
+    build: ./backend
+    environment:
+      - SOLR_HOST=http://solr
+      - SOLR_PORT=8983
+      - SOLR_CORE_NAME=news-vnexpress
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - ./data/crawler:/app/crawler/data
+      - ./data/backend:/app/rest/data

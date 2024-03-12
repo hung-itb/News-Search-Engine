@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soôgle admin</title>
+
+    <!-- bootstrap 5 -->
+    <link href="./lib/bootstrap.min.css" rel="stylesheet">
+    <script src="./lib/bootstrap.bundle.min.js"></script>
+
+    <!-- jquery -->
+    <script src="./lib/jquery.min.js"></script>
+
+    <script src="./lib/lib.js"></script>
+    <script src="./config.js"></script>
+    <link rel="stylesheet" href="./style.css">
+
+    <style>
+        body {
+            padding: 60px;
+        }
+
+        h1 {
+            margin-top: 72px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 8px;
+        }
+
+        table th,
+        table td {
+            padding-right: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div id="logo"></div>
+    <div class="alert alert-danger" id="alert-disconnect-server" style="display: none; margin-top: 30px; margin-bottom: -48px;">
+        Không thể kết nối tới server!
+    </div>
+
+    <h1>Thông tin chung</h1>
+    <ul>
+        <li id="num-docs">
+            Tổng số tin tức hiện có: <span>Loading...</span>
+        </li>
+    </ul>
+
+    <h1>Crawler</h1>
+    <ul>
+        <li id="crawler-status">
+            Trạng thái: <span>Loading...</span>
+        </li>
+        <li id="crawler-start-time" style="display: none;">
+            Bắt đầu lúc: <span>Loading...</span>
+        </li>
+        <li id="crawler-crawled-count" style="display: none;">
+            Số tin đã crawl được: <span>Loading...</span>
+        </li>
+    </ul>
+    <div id="crawler-operations" style="margin-top: 12px;"></div>
+
+    <h1>Lịch sử crawl dữ liệu</h1>
+    <button id="index-crawled-data" class="btn btn-primary" style="display: none; margin: 16px 0 24px;">Đánh chỉ mục dữ liệu</button>
+    <div id="crawl-history">
+        <span class="alert-loading">Loading...</span>
+        <div class="table-wrap" style="display: none;; border: 2px solid; padding: 16px; border-radius: 8px; width: max-content;">
+            <table>
+                <thead>
+                    <tr>
+                        <th scope="col">Bắt đầu</th>
+                        <th scope="col">Kết thúc</th>
+                        <th scope="col">Số tin tức crawl được</th>
+                        <th scope="col">Tên file</th>
+                        <th scope="col">Đã đánh chỉ mục</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div id="alert-empty-history" style="display: none;">Không có</div>
+    </div>
+
+    <script>
+        appendTextHasGoogleLogoStyle($('#logo'), 'Soôgle').css({
+            'font-size': '120px'
+        }).append('<span> • admin</span>')
+        function updateData() {
+            let delay = 1000
+            let requestDone = false
+            $.ajax({
+                type: 'GET',
+                url: window.FRONTEND_API_URL + '/api/crawler/info',
+                dataType: 'json',
+                success: (result, status, xhr) => {
+                    requestDone = true
+                    $('#alert-disconnect-server').hide()
+                    let {numDocs, crawlStatus, crawlHistory, notIndexedFilenames, indexingDocuments} = result
+                    notIndexedFilenames = new Set(notIndexedFilenames)
+
+                    // General information
+                    $('#num-docs span').html(numDocs)
+
+                    // Crawler
+                    function formatDate(date) {
+                        let [p1, p2] = date.split(' ')
+                        let [y, m, d] = p1.split('-')
+                        let [h, minute, s] = p2.split(':')
+                        return `${h}h${minute}p ${d}/${m}/${y}`
+                    }
+                    $('#crawler-operations button').remove()
+                    if (crawlStatus.status == 'crawling') {
+                        $('#crawler-status span').html('Đang hoạt động')
+                        $('#crawler-operations').append(
+                            $('<button class="btn btn-warning">Dừng crawler</button>').click(function () {
+                                requestDone = false
+                                this.remove()
+                                $.ajax({
+                                    type: 'GET',
+                                    url: window.FRONTEND_API_URL + '/api/crawler/stop',
+                                    success: () => $('#crawl-status span').html('Đã gửi tín hiệu dừng tới Crawler!'),
+                                    complete: () => requestDone = true
+                                })
+                            })
+                        )
+                        $('#crawler-start-time').show()
+                        $('#crawler-start-time span').html(crawlStatus.start_at ? formatDate(crawlStatus.start_at) : 'Vừa mới đây')
+                        $('#crawler-crawled-count').show()
+                        $('#crawler-crawled-count span').html(crawlStatus.num_crawled_docs || 0)
+                    }
+                    else if (crawlStatus.status == 'stopping') {
+                        $('#crawler-status span').html('Crawler đang xử lý nốt những request đã gửi, thường mất một lúc để dừng lại!')
+                        $('#crawler-start-time').show()
+                        $('#crawler-start-time span').html(crawlStatus.start_at ? formatDate(crawlStatus.start_at) : 'Vừa mới đây')
+                        $('#crawler-crawled-count').show()
+                        $('#crawler-crawled-count span').html(crawlStatus.num_crawled_docs || 0)
+                    } else {
+                        $('#crawler-status span').html('Đã dừng')
+                        $('#crawler-operations').append(
+                            $('<button class="btn btn-success">Chạy crawler</button>').click(function () {
+                                requestDone = false
+                                this.remove()
+                                $.ajax({
+                                    type: 'GET',
+                                    url: window.FRONTEND_API_URL + '/api/crawler/start',
+                                    success: () => $('#crawl-status span').html('Đang khởi động Crawler...'),
+                                    complete: () => requestDone = true
+                                })
+                            })
+                        )
+                        $('#crawler-start-time').hide()
+                        $('#crawler-crawled-count').hide()
+                    }
+
+                    // Crawl history
+                    $("#crawl-history .alert-loading").hide()
+                    if (crawlHistory.length == 0) {
+                        $('#index-crawled-data').hide()
+                        $('#crawl-history .table-wrap').hide()
+                        $('#alert-empty-history').show()
+                    } else {
+                        $('#crawl-history .table-wrap').show()
+                        $('#alert-empty-history').hide()
+                        
+                        if (notIndexedFilenames.size > 0 && (!indexingDocuments)) {
+                            $('#index-crawled-data').show().off("click").click(function () {
+                                requestDone = false
+                                $(this).hide()
+                                $.ajax({
+                                    type: 'GET',
+                                    url: window.FRONTEND_API_URL + '/api/solr/update',
+                                    complete: () => requestDone = true
+                                })
+                            })
+                        }
+
+                        crawlHistory = crawlHistory.reverse()
+                        $('#crawl-history table tbody').html('').append(
+                            crawlHistory.map(({start, end, num_crawled_docs, filename}) => `<tr>
+                                <td>${formatDate(start)}</td>
+                                <td>${formatDate(end)}</td>
+                                <td style="text-align: center;">${num_crawled_docs}</td>
+                                <td>${filename}</td>
+                                <td>${!notIndexedFilenames.has(filename) ? 'true' : (indexingDocuments ? 'indexing' : 'false')}</td>
+                            </tr>`)
+                        )
+                    }
+                },
+                error: () => {
+                    requestDone = true
+                    $('#alert-disconnect-server').show()
+                }
+            })
+            function startRefresh() {
+                setTimeout(requestDone ? updateData : startRefresh, delay)
+            }
+            setTimeout(startRefresh, delay)
+        }
+        updateData()
+    </script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+
+<head>
+    <title>Tìm kiếm tin tức</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- bootstrap 5 -->
+    <link href="./lib/bootstrap.min.css" rel="stylesheet">
+    <script src="./lib/bootstrap.bundle.min.js"></script>
+
+    <!-- jquery -->
+    <script src="./lib/jquery.min.js"></script>
+
+    <script src="./lib/lib.js"></script>
+    <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+    <div class="home">
+        <div class="logo"></div>
+        <input type="text" placeholder="Tìm kiếm Google hoặc nhập URL" class="search-input">
+    </div>
+
+    <script>
+        appendTextHasGoogleLogoStyle($('.home .logo'), 'Soôgle: Tìm kiếm tin tức')
+
+        $('.home .search-input').on('keydown', function (e) {
+            if (e.key == 'Enter') {
+                let q = $(this).val()
+                $(this).val('')
+                if (q == '') return
+                window.location.href = './search.html?q=' + q
+            }
+        })
+    </script>
+</body>
+
+</html>

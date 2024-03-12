@@ -1,0 +1,1 @@
+window.FRONTEND_API_URL = '';

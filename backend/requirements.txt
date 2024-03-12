@@ -1,0 +1,10 @@
+python-dotenv==1.0.1
+Django==4.2.8
+scrapy==2.8.0
+py_vncorenlp==0.1.4
+djangorestframework==3.14.0
+
+# asgiref==3.7.2
+# psycopg2==2.9.6
+# sqlparse==0.4.4
+# typing_extensions==4.7.1

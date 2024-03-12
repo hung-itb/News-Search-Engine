@@ -1,0 +1,2 @@
+news_*.jsonl filter=lfs diff=lfs merge=lfs -text
+vi-pretrainedembeddings.xz filter=lfs diff=lfs merge=lfs -text
