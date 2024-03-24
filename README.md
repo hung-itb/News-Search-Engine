@@ -55,9 +55,7 @@ Truy cập vào giao diện admin tại [http://localhost/admin.html](http://loc
 
 <p align="center"><img src="./resources/README/admin-1.png" width="830"/></p>
 
-Khi mình push code lên đây thì đã có sẵn hơn 30000 tin tức rồi, bạn nào muốn có thể mở crawler lên cho nó chạy đẻ có nhiều tin tức hơn. Trong máy mình, crawler cào được đến hơn 1 triệu tin tức cơ. 
-
-Càng về sau thì crawler sẽ càng chậm, bởi vì crawler được viết để cào web tĩnh và tìm kiếm các tin tức khác nhờ các đường link trong trang. Vậy nên sẽ có thời điểm crawler không thể cào được nữa, và phải chờ sang ngày mới để cào số lượng ít ỏi mới.
+Có thể mở crawler lên cho nó chạy để có nhiều tin tức hơn. Lần nhiều nhất mình thử, crawler cào được đến hơn 1 triệu tin tức cơ. Tuy nhiên, càng về sau thì crawler sẽ càng chậm, bởi vì crawler được viết để cào web tĩnh và tìm kiếm các tin tức khác nhờ các đường link trong trang. Vậy nên sẽ có thời điểm crawler không thể cào được nữa, và phải chờ sang ngày mới để cào số lượng ít ỏi mới.
 
 **Lưu ý**: Sau khi đã crawl được một lượng tin tức kha khá (mình thì tầm 20000), thì request gửi tới vnexpress sẽ bị chặn hết. Vậy nên phải đổi mạng để crawl tiếp, hoặc như mình thì bật **1.1.1.1** lên thì lại bình thường.
 
